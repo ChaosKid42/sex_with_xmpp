@@ -7,18 +7,29 @@ from optparse import OptionParser
 
 from sleekxmpp import ClientXMPP
 
+from xmpp_sex import XMMPPSex
+
+from box import Box
+
 class SexSnd(ClientXMPP):
-	def __init__(self, jid, password):
+	def __init__(self, jid, password, recipient):
 		ClientXMPP.__init__(self, jid, password)
+		self.recipient = recipient
 		
 		self.add_event_handler("session_start", self.session_start, threaded=True)
 		self.ssl_version = ssl.PROTOCOL_TLS
+
+		self.xmppSex = XMMPPSex(jid)
 
 	def session_start(self, event):
 		self.send_presence()
 		while (True):
 			message = input("Message: ")
-			self.send_message(mto=opts.recipient, mbody=message)
+			stanza = self.make_message(mto=self.recipient, mbody='Voulez vous coucher avec moi?', mtype='chat')
+			nonce, box = self.xmppSex.encryptTo(self.recipient, "<body>{}</body>".format(message));
+			stanza['box'].set_nonce(nonce)
+			stanza['box'].set_box(box)
+			stanza.send()
 
 if __name__ == '__main__':
 	optp = OptionParser()
@@ -58,6 +69,7 @@ if __name__ == '__main__':
 		opts.recipient = input("Recipient: ")
 
 
-	xmpp = SexSnd(opts.jid, opts.password)
+	xmpp = SexSnd(opts.jid, opts.password, opts.recipient)
+
 	xmpp.connect()
 	xmpp.process(block=True)

@@ -36,8 +36,8 @@ class XMMPPSex():
 			self.addPubkey(jid)
 		box = Box(self.sk, self.pk[jid])
 		nonce = nacl.utils.random(Box.NONCE_SIZE)
-		return (nacl.encoding.URLSafeBase64Encoder.encode(nonce), 
-			box.encrypt(message.encode('utf-8'), nonce, nacl.encoding.URLSafeBase64Encoder).ciphertext)
+		return (nacl.encoding.URLSafeBase64Encoder.encode(nonce).decode('utf-8'),
+			box.encrypt(message.encode('utf-8'), nonce, nacl.encoding.URLSafeBase64Encoder).ciphertext.decode('utf-8'))
 
 	def decryptFrom(self, jid, message, nonce):
 		if not jid in self.pk:

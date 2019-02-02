@@ -7,6 +7,12 @@ from optparse import OptionParser
 
 from sleekxmpp import ClientXMPP
 
+from sleekxmpp.xmlstream import JID
+
+from xmpp_sex import XMMPPSex
+
+from box import Box
+
 class SexRcv(ClientXMPP):
 	def __init__(self, jid, password):
 		ClientXMPP.__init__(self, jid, password)
@@ -16,14 +22,22 @@ class SexRcv(ClientXMPP):
 		
 		self.ssl_version = ssl.PROTOCOL_TLS
 
+		self.xmppSex = XMMPPSex(jid)
+
 	def session_start(self, event):
 		self.send_presence()
 
 	def message(self, msg):
 		if msg['type'] in ('chat', 'normal'):
 			print(msg)
-			print("Cleartext: {}\n".format(msg['body']))
-
+			print("Body: {}".format(msg['body']))
+			jid = JID(msg['from']).bare
+			nonce = msg['box'].get_nonce()
+			box = msg['box'].get_box()
+			print("Nonce: {}".format(nonce))
+			print("Box: {}".format(box))
+			cleartext = self.xmppSex.decryptFrom(jid, box, nonce)
+			print("Cleartext: {}\n".format(cleartext))
 
 if __name__ == '__main__':
 	optp = OptionParser()
