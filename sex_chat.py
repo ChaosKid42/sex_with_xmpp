@@ -7,6 +7,8 @@ from optparse import OptionParser
 
 from sleekxmpp import ClientXMPP
 
+from sleekxmpp.xmlstream import JID
+
 from xmpp_sex import XMMPPSex
 
 from box import Box
@@ -17,6 +19,7 @@ class SexSnd(ClientXMPP):
 		self.recipient = recipient
 		
 		self.add_event_handler("session_start", self.session_start, threaded=True)
+		self.add_event_handler("message", self.message)
 		self.ssl_version = ssl.PROTOCOL_TLS
 
 		self.xmppSex = XMMPPSex(jid)
@@ -30,6 +33,18 @@ class SexSnd(ClientXMPP):
 			stanza['box'].set_nonce(nonce)
 			stanza['box'].set_box(box)
 			stanza.send()
+
+	def message(self, msg):
+		if msg['type'] in ('chat', 'normal'):
+			print(msg)
+			print("Body: {}".format(msg['body']))
+			jid = JID(msg['from']).bare
+			nonce = msg['box'].get_nonce()
+			box = msg['box'].get_box()
+			print("Nonce: {}".format(nonce))
+			print("Box: {}".format(box))
+			cleartext = self.xmppSex.decryptFrom(jid, box, nonce)
+			print("Cleartext: {}\n".format(cleartext))
 
 if __name__ == '__main__':
 	optp = OptionParser()
